@@ -1,0 +1,5 @@
+---
+title: "Statistiques inférentielles"
+---
+
+Cours de statistiques inférentielles pour les vet2 ONIRIS Nantes

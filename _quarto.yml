@@ -1,0 +1,23 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "stat_inferentielles"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Index
+      - TD4.qmd
+      - TD5_TD7.qmd
+
+format:
+  html:
+    theme:
+      - cosmo
+      - brand
+    css: styles.css
+    toc: true
+
+editor: visual
+
