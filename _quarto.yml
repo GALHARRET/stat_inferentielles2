@@ -3,13 +3,14 @@ project:
   output-dir: docs
 
 website:
-  title: "stat_inferentielles"
+  title: "Statistique Inférentielle"
   navbar:
     left:
       - href: index.qmd
-        text: Index
+        text: Introduction
       - TD4.qmd
       - TD5_TD7.qmd
+      - correction_ExerciceTD7.qmd
 
 format:
   html:

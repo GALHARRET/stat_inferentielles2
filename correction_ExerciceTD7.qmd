@@ -1,0 +1,268 @@
+# Correction exercice Hirsutisme
+Charger toutes les libraries nécessaires et le fichier de données :
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(scales)
+library(gtsummary)
+load(file = "data/Hirsutisme.RData")
+```
+
+#### Partie 1 :
+
+1.  Peut-on penser que l'âge est différent selon le statut PUPD ?
+
+Il s'agit de faire le lien entre une variable qualitative (PUPD) et une variable quantitative (âge). On va utiliser un test de comparaison de moyennes. On teste $H_0:\mu_{PUPD=0}=\mu_{PUPD=1}$ par un test de Student :
+
+```{r}
+t.test(Age~PUPD,data=Hirsutisme2)
+ggplot(Hirsutisme2,aes(x=PUPD,y=Age))+
+  geom_boxplot()+
+  geom_jitter(width=.1,col="pink")+
+  theme_bw()
+```
+
+Au risque de 5% on ne peut pas rejeter H0, c'est à dire que l'on ne peut pas affirmer qu'il existe une différence significative au niveau de l'âge selon le statut PUPD.
+
+2.  Peut-on penser que plus la cortisol est élevée et plus l'insulinémie l'est également ?
+
+Les deux variables considérées sont quantitatives, on fait donc un test de corrélation ou bien un test sur la pente du modèle :
+
+```{r}
+mod <- lm(cortisol ~ insulinemie, data = Hirsutisme2)
+summary(mod)
+
+beta0  <- coef(mod)[1]
+beta1  <- coef(mod)[2]
+r2 <- summary(mod)$r.squared
+
+eq <- paste0("y = ", round(beta0, 2), ifelse(beta1 >= 0, " + ", " - "),
+             abs(round(beta1, 2)), " x   (R² = ", round(r2, 3), ")")
+
+ggplot(Hirsutisme2, aes(x = insulinemie, y = cortisol)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  annotate("text", x = -Inf, y = Inf, label = eq,
+           hjust = -0.1, vjust = 1.5, size = 8) +
+  theme_bw()
+
+```
+
+Au risque de 5%, on ne peut pas affirmer qu'il existe un lien significatif entre le cortisol et l'insulinémie ($p-value=0.054$). Rappel la $p-value$ doit être significativement inférieure au risque !
+
+3.  Peut-on penser que les boiteries sont plus présentes chez les individus hirsutes ?
+
+Les deux variables considérées sont qualitatives donc on va faire un test du chi2
+
+```{r}
+obs<-table(Hirsutisme2$diagnostic,Hirsutisme2$boiterie)
+chisq.test(obs)
+
+tab <- Hirsutisme2 %>%
+  filter(!is.na(diagnostic), !is.na(boiterie)) %>%
+  count(diagnostic, boiterie) %>%
+  group_by(diagnostic) %>%
+  mutate(
+    pct   = n / sum(n),
+    label = paste0("n = ", n, "\n",
+                   percent(pct, accuracy = 0.1, decimal.mark = ","))
+  ) %>%
+  ungroup()
+
+ggplot(tab, aes(x = diagnostic, y = n, fill = boiterie)) +
+  geom_col(position = "fill") +
+  geom_text(aes(label = label),
+            position = position_fill(vjust = 0.5),
+            size = 3.5, color = "white", fontface = "bold") +
+  labs(title = "",
+       x = "diagnostic",
+       y = "Pourcentage") +
+  scale_y_continuous(labels = scales::percent) +
+  theme_bw()
+```
+
+Donc au risque de 5%, on ne peut pas affirmer qu'il existe un lien entre le diagnostic et la présence de boiterie ($p-value=0.4348$).
+
+4.  Peut-on penser que PUPD peut-être un indicateur de l'hirsutisme ?
+
+```{r}
+obs<-table(Hirsutisme2$diagnostic,Hirsutisme2$PUPD)
+chisq.test(obs)
+
+tab <- Hirsutisme2 %>%
+  filter(!is.na(diagnostic), !is.na(PUPD)) %>%
+  count(diagnostic, PUPD) %>%
+  group_by(diagnostic) %>%
+  mutate(
+    pct   = n / sum(n),
+    label = paste0("n = ", n, "\n",
+                   percent(pct, accuracy = 0.1, decimal.mark = ","))
+  ) %>%
+  ungroup()
+
+ggplot(tab, aes(x = diagnostic, y = n, fill = PUPD)) +
+  geom_col(position = "fill") +
+  geom_text(aes(label = label),
+            position = position_fill(vjust = 0.5),
+            size = 3.5, color = "white", fontface = "bold") +
+  labs(title = "",
+       x = "diagnostic",
+       y = "Pourcentage") +
+  scale_y_continuous(labels = scales::percent) +
+  theme_bw()
+```
+Au risque de 5%, on ne peut pas affirmer qu'il existe un lien entre le diagnostic et le statut PUPD ($p=0.2045$).
+
+5.  Tester si l'une des caractéristiques quantitatives est indicatrice de l'hirsutisme.
+
+```{r}
+t.test(glycemie~diagnostic, data=Hirsutisme2)
+ggplot(Hirsutisme2,aes(x=diagnostic,y=glycemie))+
+  geom_boxplot()+
+  geom_jitter(width=.1,col="pink")+
+  theme_bw()
+t.test(cortisol~diagnostic, data=Hirsutisme2)
+ggplot(Hirsutisme2,aes(x=diagnostic,y=cortisol))+
+  geom_boxplot()+
+  geom_jitter(width=.1,col="pink")+
+  theme_bw()
+t.test(insulinemie~diagnostic, data=Hirsutisme2)
+ggplot(Hirsutisme2,aes(x=diagnostic,y=insulinemie))+
+  geom_boxplot()+
+  geom_jitter(width=.1,col="pink")+
+  theme_bw()
+t.test(prolactine~diagnostic, data=Hirsutisme2)
+ggplot(Hirsutisme2,aes(x=diagnostic,y=prolactine))+
+  geom_boxplot()+
+  geom_jitter(width=.1,col="pink")+
+  theme_bw()
+```
+
+Au risque de 5%, on peut affirmer que les moyennes du taux de glycémie ($p-value=2.356e-07$) et de l'insulinémie ($p-value=0.004525$) sont significativement différentes entre les hirsutes et ceux ne l'étant pas, ce n'est pas le cas pour le cortisol et la prolactine. 
+
+Les deux variables qui caractérisent l'hirsutisme sont glycémie  et insulinémie.
+
+6.  Existe-t-il un lien entre le statut PUPD et le statut polyphagie ?
+
+```{r}
+obs<-table(Hirsutisme2$polyphagie,Hirsutisme2$PUPD)
+chisq.test(obs)
+Hirsutisme2 |> 
+  select(polyphagie, PUPD) |>
+  tbl_cross(
+    row     = PUPD,
+    col     = polyphagie,
+    percent = "column"
+  )
+```
+
+Au risque de 5%, on peut affirmer qu'il existe un lien significatif entre le statut PUPD et la polyphagie, la polyphagie étant plus présence chez les animaux présentant un problème de PUPD que les autres.
+
+7.  Existe-t-il un lien entre l'hyperhidrose et le statut PUPD ? de même avec le diagnostique.
+
+```{r}
+obs<-table(Hirsutisme2$hyperhidrose,Hirsutisme2$PUPD)
+chisq.test(obs)
+```
+Au risque de 5% on ne peut pas dire qu'il existe un lien entre l'hyperhidrose et le statut PUPD ($p-value=0.8407$). 
+
+#### Partie 2 :On se restreint aux individus hirsutes de l'échantillon.
+
+```{r}
+Hirsutes<-Hirsutisme2[Hirsutisme2$diagnostic=="hirsute",]  
+```
+
+1.  Peut-on penser que la proportion des chevaux et celle des poneys est la même chez les hirsutes ?
+
+```{r}
+tab <- Hirsutisme2 |>
+  filter(!is.na(Type)) |>
+  count(Type) |>
+  mutate(
+    pct   = n / sum(n),
+    label = paste0("n = ", n, "\n",
+                   percent(pct, accuracy = 0.1, decimal.mark = ","))
+  )
+
+# Diagramme circulaire
+ggplot(tab, aes(x = "", y = n, fill = Type)) +
+  geom_col(width = 1, color = "white") +
+  coord_polar(theta = "y", start = 0) +
+  geom_text(aes(label = label),
+            position = position_stack(vjust = 0.5),
+            size = 5, color = "white", fontface = "bold") +
+  scale_fill_manual(values = c("#1f77b4", "#ff7f0e")) +
+  labs(title = "Répartition des hirsutes selon le Type", fill = "Sexe") +
+  theme_void() +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 14))
+
+obs<-table(Hirsutes$Type)
+chisq.test(obs)
+```
+
+On teste $H_0:p_{\text{chevaux}}=p_{\text{poneys}}$. Au risque de 5%, on peut affirmer que la proportion de chevaux est significativement supérieure à celle de poneys chez les animaux hirsutes ($p-value=0.006$).
+
+
+2.  Peut-on penser que pour les hirsutes, le taux de glycémie moyen est supérieur à 1?
+
+```{r}
+t.test(Hirsutes$glycemie,mu=1)
+ggplot(Hirsutes,aes(x="",y=glycemie))+
+  geom_boxplot()+
+  geom_jitter(width=.1,col="pink")+
+  theme_bw()
+```
+
+Au risque de 5%, on peut donc affirmer que la moyenne de la glycémie chez les hirsutes (moyenne observée=1.6) est donc significativement supérieure à 1 ($p-value=8.035e-07$).
+
+3.  Peut-on penser que, chez les hirsutes, les chevaux ont un taux de glycémie supérieur aux poneys ?
+
+```{r}
+t.test(glycemie~Type,data=Hirsutes)
+```
+
+Au risque de 5%, on ne peut pas affirmer qu'il existe une différence significative entre le taux de glycémie moyen des chevaux et des poneys ($p-value=0.4922$).
+
+4.  Peut-on penser que chez hirsutes, plus l'on est âgé plus on a un taux de glycémie élevé ?
+
+```{r}
+mod<-lm(glycemie~Age,data=Hirsutes)
+summary(mod)
+```
+
+Au risque de 5%, on ne peut affirmer qu'il y a un lien entre l'âge et le taux de glycémie ($p-value=0.94$).
+
+5.  Chez les hirsutes, peut-on penser que les variations de poids sont plus importantes chez les chevaux que chez les poneys ?
+
+```{r}
+obs<-table(Hirsutes$Type,Hirsutes$poids)
+chisq.test(obs)
+fisher.test(obs)
+```
+Au risque de 5%, on ne peut pas affirmer qu'il existe un lien significatif entre la perte de poids et le type d'animal.
+
+
+6.  Chez les hirsutes, peut-on penser qu'il existe un lien entre le cortisol et l'insulinémie ?
+
+```{r}
+mod<-lm(insulinemie~cortisol,data=Hirsutes)
+summary(mod)
+
+beta0  <- coef(mod)[1]
+beta1  <- coef(mod)[2]
+r2 <- summary(mod)$r.squared
+
+eq <- paste0("y = ", round(beta0, 2), ifelse(beta1 >= 0, " + ", " - "),
+             abs(round(beta1, 2)), " x   (R² = ", round(r2, 3), ")")
+
+ggplot(Hirsutes, aes(x = cortisol, y = insulinemie)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  annotate("text", x = -Inf, y = Inf, label = eq,
+           hjust = -0.1, vjust = 1.5, size = 8) +
+  theme_bw()
+
+```
+
+Au risque de 5%, on ne peut pas affirmer qu'il existe un lien significatif entre cortisol et insulinémie.

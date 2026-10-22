@@ -1,5 +1,15 @@
 ---
-title: "Statistiques inférentielles"
+title: "Introduction"
 ---
 
-Cours de statistiques inférentielles pour les vet2 ONIRIS Nantes
+Ce cours est réalisé dans l'UE039 en deuxième année d'études vétérinaires à ONIRIS VetAgroBio (Nantes).
+
+Il aborde les notions de base en statistique inférentielle :
+
+- chapitre 1 : problèmes d'estimations
+
+- chapitre 2 : tests d'hypothèse
+
+Les notions abordées ne sont pas développées d'un point de vue théorique mais sont à visée pratique.
+
+Une présentation plus exhaustive est par exemple disponible sur ce livre de D. Howell STATISTICAL METHODS FOR PSYCHOLOGY [ici](https://labs.la.utexas.edu/gilden/files/2016/05/Statistics-Text.pdf)
